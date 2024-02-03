@@ -1,6 +1,6 @@
 package com.mattdangelo.flashpad
 
-import android.content.Context
+import android.app.Application
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
@@ -48,11 +48,14 @@ class MainActivity : ComponentActivity() {
 
         window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
 
+        // Initialize flashlight manager here
+        FlashlightManager.getInstance(application)
+
         setContent {
             FlashpadTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    FlashPad(this)
+                    FlashPad()
                 }
             }
         }
@@ -60,21 +63,26 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        // TODO: Ensure flashlight is off
+        FlashlightManager.getInstance(application).setFlashlightState(0);
     }
 
     override fun onStop() {
         super.onStop()
-        // TODO: Ensure flashlight is off
+        FlashlightManager.getInstance(application).setFlashlightState(0);
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun FlashPad(context: Context) {
-    var isFlashlightOn by remember { mutableStateOf(false) }
+fun FlashPad() {
+    val flashlightManager = FlashlightManager.getInstance(LocalContext.current.applicationContext as Application)
 
-    val flashlightManager = remember { FlashlightManager(context) }
+    var boxColour by remember {
+        mutableStateOf(if(flashlightManager.currentFlashlightState == FlashlightManager.FlashlightState.ON)
+                           Color.LightGray
+                       else
+                           Color.DarkGray)
+    }
 
     Column(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)) {
         Spacer(modifier = Modifier.statusBarsPadding().fillMaxWidth().height(0.dp))
@@ -82,17 +90,17 @@ fun FlashPad(context: Context) {
             .fillMaxSize()
             .padding(22.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(if (isFlashlightOn) Color.LightGray else Color.DarkGray)
+            .background(boxColour)
             .pointerInteropFilter { event ->
                 when (event.action) {
                     android.view.MotionEvent.ACTION_DOWN -> {
-                        isFlashlightOn = true
-                        flashlightManager.toggleFlashlight(isOn = true)
+                        boxColour = Color.LightGray;
+                        flashlightManager.setFlashlightState(1)
                         true
                     }
                     android.view.MotionEvent.ACTION_UP -> {
-                        isFlashlightOn = false
-                        flashlightManager.toggleFlashlight(isOn = false)
+                        boxColour = Color.DarkGray;
+                        flashlightManager.setFlashlightState(0)
                         true
                     }
                     else -> false
@@ -106,6 +114,6 @@ fun FlashPad(context: Context) {
 @Composable
 fun GreetingPreview() {
     FlashpadTheme {
-        FlashPad(LocalContext.current)
+        FlashPad()
     }
 }

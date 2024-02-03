@@ -9,7 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.mattdangelo.flashpad"
-        minSdk = 24
+        // TODO: Lower this and have separate logic in the flashlight manager to include brightness control
+        minSdk = 33
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

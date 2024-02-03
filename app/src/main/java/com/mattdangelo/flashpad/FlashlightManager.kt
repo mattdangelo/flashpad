@@ -1,15 +1,37 @@
 package com.mattdangelo.flashpad
 
+import android.app.Application
 import android.content.Context
-import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 
-class FlashlightManager(private val context: Context) {
+class FlashlightManager private constructor(application: Application) {
+    enum class FlashlightState {
+        ON,
+        OFF
+    }
+
+    val currentFlashlightState = FlashlightState.OFF;
+
+    // TODO: Move into constructor and raise error if this isn't available
+//    fun isFlashlightAvailable(): Boolean {
+//        return application.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)
+//    }
+
+    companion object {
+        @Volatile
+        private var instance: FlashlightManager? = null
+
+        fun getInstance(application: Application): FlashlightManager {
+            return instance ?: synchronized(this) {
+                instance ?: FlashlightManager(application).also { instance = it }
+            }
+        }
+    }
 
     private val cameraManager: CameraManager? by lazy {
-        context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+        application.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
     }
 
     private var cameraId: String? = null
@@ -32,18 +54,19 @@ class FlashlightManager(private val context: Context) {
         return null
     }
 
-    fun toggleFlashlight(isOn: Boolean) {
+    fun setFlashlightState(brightness: Int) {
         if (cameraManager != null && cameraId != null) {
             try {
-                cameraManager!!.setTorchMode(cameraId!!, isOn)
+                if (brightness == 0) {
+                    cameraManager!!.setTorchMode(cameraId!!, false)
+                }
+                else {
+                    cameraManager!!.turnOnTorchWithStrengthLevel(cameraId!!, brightness);
+                }
             } catch (e: CameraAccessException) {
                 e.printStackTrace()
             }
         }
-    }
-
-    fun isFlashlightAvailable(): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)
     }
 
     fun release() {
