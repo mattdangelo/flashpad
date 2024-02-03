@@ -2,6 +2,7 @@ package com.mattdangelo.flashpad
 
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -12,12 +13,8 @@ class FlashlightManager private constructor(application: Application) {
         OFF
     }
 
-    val currentFlashlightState = FlashlightState.OFF;
-
-    // TODO: Move into constructor and raise error if this isn't available
-//    fun isFlashlightAvailable(): Boolean {
-//        return application.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)
-//    }
+    var currentFlashlightState = FlashlightState.OFF
+    private var cameraId: String? = null
 
     companion object {
         @Volatile
@@ -34,12 +31,6 @@ class FlashlightManager private constructor(application: Application) {
         application.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
     }
 
-    private var cameraId: String? = null
-
-    init {
-        cameraId = getCameraId()
-    }
-
     private fun getCameraId(): String? {
         val cameraIds = cameraManager?.cameraIdList
         for (id in cameraIds.orEmpty()) {
@@ -54,26 +45,29 @@ class FlashlightManager private constructor(application: Application) {
         return null
     }
 
+    init {
+        // Check if the device has a camera flash feature
+        if (!application.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
+            throw UnsupportedOperationException("This device does not have a camera flash.")
+        }
+
+        cameraId = getCameraId()
+    }
+
     fun setFlashlightState(brightness: Int) {
         if (cameraManager != null && cameraId != null) {
             try {
                 if (brightness == 0) {
                     cameraManager!!.setTorchMode(cameraId!!, false)
+                    currentFlashlightState = FlashlightState.OFF
                 }
                 else {
                     cameraManager!!.turnOnTorchWithStrengthLevel(cameraId!!, brightness);
+                    currentFlashlightState = FlashlightState.ON
                 }
             } catch (e: CameraAccessException) {
                 e.printStackTrace()
             }
         }
-    }
-
-    fun release() {
-        TODO("Not yet implemented")
-    }
-
-    fun initialize() {
-        TODO("Not yet implemented")
     }
 }

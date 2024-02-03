@@ -19,15 +19,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.mattdangelo.flashpad.ui.theme.FlashpadTheme
-
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
+    private var redrawState by mutableIntStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -55,7 +56,7 @@ class MainActivity : ComponentActivity() {
             FlashpadTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    FlashPad()
+                    FlashPad(redrawState)
                 }
             }
         }
@@ -63,25 +64,27 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        redrawState++
         FlashlightManager.getInstance(application).setFlashlightState(0);
     }
 
     override fun onStop() {
         super.onStop()
+        redrawState++
         FlashlightManager.getInstance(application).setFlashlightState(0);
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun FlashPad() {
+fun FlashPad(redrawState: Int) {
     val flashlightManager = FlashlightManager.getInstance(LocalContext.current.applicationContext as Application)
 
-    var boxColour by remember {
-        mutableStateOf(if(flashlightManager.currentFlashlightState == FlashlightManager.FlashlightState.ON)
-                           Color.LightGray
-                       else
-                           Color.DarkGray)
+    var boxColour by remember { mutableStateOf(Color.DarkGray) }
+
+    LaunchedEffect(redrawState) {
+        delay(100)
+        boxColour = Color.DarkGray
     }
 
     Column(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)) {
@@ -107,13 +110,5 @@ fun FlashPad() {
                 }
             }
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    FlashpadTheme {
-        FlashPad()
     }
 }
