@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
@@ -65,13 +66,13 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         redrawState++
-        FlashlightManager.getInstance(application).setFlashlightState(0);
+        FlashlightManager.getInstance(application).setFlashlightState(0F);
     }
 
     override fun onStop() {
         super.onStop()
         redrawState++
-        FlashlightManager.getInstance(application).setFlashlightState(0);
+        FlashlightManager.getInstance(application).setFlashlightState(0F);
     }
 }
 
@@ -81,6 +82,7 @@ fun FlashPad(redrawState: Int) {
     val flashlightManager = FlashlightManager.getInstance(LocalContext.current.applicationContext as Application)
 
     var boxColour by remember { mutableStateOf(Color.DarkGray) }
+    var boxSize: Int by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(redrawState) {
         delay(100)
@@ -94,16 +96,17 @@ fun FlashPad(redrawState: Int) {
             .padding(22.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(boxColour)
+            .onSizeChanged { size -> boxSize = size.height }
             .pointerInteropFilter { event ->
                 when (event.action) {
                     android.view.MotionEvent.ACTION_DOWN -> {
                         boxColour = Color.LightGray;
-                        flashlightManager.setFlashlightState(1)
+                        flashlightManager.setFlashlightState((boxSize - event.y) / boxSize)
                         true
                     }
                     android.view.MotionEvent.ACTION_UP -> {
                         boxColour = Color.DarkGray;
-                        flashlightManager.setFlashlightState(0)
+                        flashlightManager.setFlashlightState(0F)
                         true
                     }
                     else -> false

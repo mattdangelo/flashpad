@@ -8,12 +8,10 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 
 class FlashlightManager private constructor(application: Application) {
-    enum class FlashlightState {
-        ON,
-        OFF
-    }
+    enum class FlashlightState { ON, OFF }
 
-    var currentFlashlightState = FlashlightState.OFF
+    private var currentFlashlightState = FlashlightState.OFF
+    private var maxFlashlightStrength = 0;
     private var cameraId: String? = null
 
     companion object {
@@ -38,6 +36,9 @@ class FlashlightManager private constructor(application: Application) {
             val flashAvailable = characteristics?.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) ?: false
             val lensFacing = characteristics?.get(CameraCharacteristics.LENS_FACING)
 
+            // Which we have the camera characteristics loaded, store the max brightness level
+            maxFlashlightStrength = characteristics?.get(CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
+
             if (flashAvailable && lensFacing == CameraCharacteristics.LENS_FACING_BACK) {
                 return id
             }
@@ -54,15 +55,17 @@ class FlashlightManager private constructor(application: Application) {
         cameraId = getCameraId()
     }
 
-    fun setFlashlightState(brightness: Int) {
+    fun setFlashlightState(brightness: Float) {
+        // TODO: Raise exception if outside of 0 - 1
         if (cameraManager != null && cameraId != null) {
             try {
-                if (brightness == 0) {
+                val normalizedBrightness = (brightness * maxFlashlightStrength).toInt()
+                if (normalizedBrightness <= 0) {
                     cameraManager!!.setTorchMode(cameraId!!, false)
                     currentFlashlightState = FlashlightState.OFF
                 }
                 else {
-                    cameraManager!!.turnOnTorchWithStrengthLevel(cameraId!!, brightness);
+                    cameraManager!!.turnOnTorchWithStrengthLevel(cameraId!!, normalizedBrightness);
                     currentFlashlightState = FlashlightState.ON
                 }
             } catch (e: CameraAccessException) {
