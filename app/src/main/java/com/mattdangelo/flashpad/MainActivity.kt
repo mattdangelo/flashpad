@@ -66,13 +66,13 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         redrawState++
-        FlashlightManager.getInstance(application).setFlashlightState(0F);
+        FlashlightManager.getInstance(application).setFlashlightBrightness(0F);
     }
 
     override fun onStop() {
         super.onStop()
         redrawState++
-        FlashlightManager.getInstance(application).setFlashlightState(0F);
+        FlashlightManager.getInstance(application).setFlashlightBrightness(0F);
     }
 }
 
@@ -99,14 +99,14 @@ fun FlashPad(redrawState: Int) {
             .onSizeChanged { size -> boxSize = size.height }
             .pointerInteropFilter { event ->
                 when (event.action) {
-                    android.view.MotionEvent.ACTION_DOWN -> {
+                    android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_MOVE -> {
                         boxColour = Color.LightGray;
-                        flashlightManager.setFlashlightState((boxSize - event.y) / boxSize)
+                        flashlightManager.setFlashlightBrightness((boxSize - event.y) / boxSize)
                         true
                     }
-                    android.view.MotionEvent.ACTION_UP -> {
+                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
                         boxColour = Color.DarkGray;
-                        flashlightManager.setFlashlightState(0F)
+                        flashlightManager.setFlashlightBrightness(0F)
                         true
                     }
                     else -> false

@@ -55,8 +55,12 @@ class FlashlightManager private constructor(application: Application) {
         cameraId = getCameraId()
     }
 
-    fun setFlashlightState(brightness: Float) {
-        // TODO: Raise exception if outside of 0 - 1
+    fun setFlashlightBrightness(brightness: Float) {
+        if (brightness < 0F || brightness > 1F) {
+            // TODO: See when this happens and prevent it
+            // throw IllegalArgumentException("Brightness must be between 0 and 1")
+        }
+
         if (cameraManager != null && cameraId != null) {
             try {
                 val normalizedBrightness = (brightness * maxFlashlightStrength).toInt()
