@@ -85,8 +85,30 @@ fun FlashPad(redrawState: Int) {
     var boxSize: Int by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(redrawState) {
-        delay(100)
+        delay(50)
         boxColour = Color.DarkGray
+    }
+
+    fun handlePadAction(event: android.view.MotionEvent): Boolean {
+        return when (event.action) {
+            android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_MOVE -> {
+                val brightness = (boxSize - event.y) / boxSize
+                val clampedBrightness = brightness.coerceIn(0f, 1f)
+
+                // Update the box color based on brightness
+                boxColour = Utils.blendColors(Color.DarkGray, Color.LightGray, clampedBrightness)
+
+                // Set flashlight brightness
+                flashlightManager.setFlashlightBrightness(clampedBrightness)
+                true
+            }
+            android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                boxColour = Color.DarkGray
+                flashlightManager.setFlashlightBrightness(0F)
+                true
+            }
+            else -> false
+        }
     }
 
     Column(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)) {
@@ -97,21 +119,7 @@ fun FlashPad(redrawState: Int) {
             .clip(RoundedCornerShape(10.dp))
             .background(boxColour)
             .onSizeChanged { size -> boxSize = size.height }
-            .pointerInteropFilter { event ->
-                when (event.action) {
-                    android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_MOVE -> {
-                        boxColour = Color.LightGray
-                        flashlightManager.setFlashlightBrightness((boxSize - event.y) / boxSize)
-                        true
-                    }
-                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
-                        boxColour = Color.DarkGray
-                        flashlightManager.setFlashlightBrightness(0F)
-                        true
-                    }
-                    else -> false
-                }
-            }
+            .pointerInteropFilter { event -> handlePadAction(event) }
         )
     }
 }
