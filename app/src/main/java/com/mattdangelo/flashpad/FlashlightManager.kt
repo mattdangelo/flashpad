@@ -11,7 +11,7 @@ class FlashlightManager private constructor(application: Application) {
     enum class FlashlightState { ON, OFF }
 
     private var currentFlashlightState = FlashlightState.OFF
-    private var maxFlashlightStrength = 0;
+    private var maxFlashlightStrength = 0
     private var cameraId: String? = null
 
     companion object {
@@ -69,7 +69,7 @@ class FlashlightManager private constructor(application: Application) {
                     currentFlashlightState = FlashlightState.OFF
                 }
                 else {
-                    cameraManager!!.turnOnTorchWithStrengthLevel(cameraId!!, normalizedBrightness);
+                    cameraManager!!.turnOnTorchWithStrengthLevel(cameraId!!, normalizedBrightness)
                     currentFlashlightState = FlashlightState.ON
                 }
             } catch (e: CameraAccessException) {
