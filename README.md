@@ -7,11 +7,6 @@ A simple, clean flashlight app written in Kotlin
 [![GitHub issues open](https://img.shields.io/github/issues/mattdangelo/flashpad.svg?maxAge=2592000)]()
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/mattdangelo/flashpad)
 
-## Demo
-
-Insert gif or link to demo
-
-
 ## Features
 
 - Adjustable brightness control
