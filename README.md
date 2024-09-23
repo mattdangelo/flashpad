@@ -1,6 +1,6 @@
 # Flashpad
 
-A simple, clean flashlight app written in Kotlin
+A simple, minimal flashlight app written in Kotlin
 
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
