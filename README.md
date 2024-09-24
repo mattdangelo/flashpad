@@ -6,7 +6,7 @@ A simple, minimal flashlight app written in Kotlin
 [![GitHub issues open](https://img.shields.io/github/issues/mattdangelo/flashpad.svg?maxAge=2592000)]()
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/mattdangelo/flashpad)
 
-![til](./repo/demo.gif)
+![demo](./repo/demo.gif)
 
 ## Features
 
