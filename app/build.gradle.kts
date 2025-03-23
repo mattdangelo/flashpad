@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.mattdangelo.flashpad"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.mattdangelo.flashpad"
