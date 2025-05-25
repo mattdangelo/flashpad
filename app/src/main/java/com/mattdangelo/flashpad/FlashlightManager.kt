@@ -36,7 +36,7 @@ class FlashlightManager private constructor(application: Application) {
             val flashAvailable = characteristics?.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) ?: false
             val lensFacing = characteristics?.get(CameraCharacteristics.LENS_FACING)
 
-            // Which we have the camera characteristics loaded, store the max brightness level
+            // When we have the camera characteristics loaded, store the max brightness level
             maxFlashlightStrength = characteristics?.get(CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
 
             if (flashAvailable && lensFacing == CameraCharacteristics.LENS_FACING_BACK) {
