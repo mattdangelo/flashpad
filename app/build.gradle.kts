@@ -6,13 +6,13 @@ plugins {
 
 android {
     namespace = "com.mattdangelo.flashpad"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.mattdangelo.flashpad"
         // TODO: Lower this and have separate logic in the flashlight manager to include brightness control
         minSdk = 33
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -49,7 +49,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.16.0")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation(platform("androidx.compose:compose-bom:2025.08.00"))
@@ -57,7 +57,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    testImplementation("org.mockito:mockito-core:5.17.0")
+    testImplementation("org.mockito:mockito-core:5.18.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
