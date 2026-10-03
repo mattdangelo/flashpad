@@ -218,7 +218,7 @@ fun FlashPad(
                     indication = null,
                     onClick = onSosToggle
                 )
-                .padding(16.dp)
+                .padding(start = 24.dp, top = 16.dp, end = 16.dp, bottom = 16.dp)
         )
     }
 }
