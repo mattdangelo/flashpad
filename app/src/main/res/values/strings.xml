@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Flashpad</string>
+    <string name="sos">SOS</string>
 </resources>
