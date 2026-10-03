@@ -6,15 +6,20 @@ import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.util.Log
+import kotlin.math.ceil
 
 class FlashlightManager private constructor(application: Application) {
-    enum class FlashlightState { ON, OFF }
-
-    private var currentFlashlightState = FlashlightState.OFF
-    private var maxFlashlightStrength = 0
-    private var cameraId: String? = null
+    init {
+        // Check if the device has a camera flash feature
+        if (!application.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
+            throw UnsupportedOperationException("This device does not have a camera flash.")
+        }
+    }
 
     companion object {
+        private const val TAG = "FlashlightManager"
+
         @Volatile
         private var instance: FlashlightManager? = null
 
@@ -25,56 +30,45 @@ class FlashlightManager private constructor(application: Application) {
         }
     }
 
-    private val cameraManager: CameraManager? by lazy {
-        application.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
-    }
+    private val cameraManager = application.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    private var maxFlashlightStrength = 1
+    private var defaultFlashlightStrength = 1
+    private val cameraId: String? = findBackCameraWithFlash()
 
-    private fun getCameraId(): String? {
-        val cameraIds = cameraManager?.cameraIdList
-        for (id in cameraIds.orEmpty()) {
-            val characteristics = cameraManager?.getCameraCharacteristics(id)
-            val flashAvailable = characteristics?.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) ?: false
-            val lensFacing = characteristics?.get(CameraCharacteristics.LENS_FACING)
+    // The device's default torch brightness, normalized to 0-1
+    val defaultFlashlightBrightness: Float
+        get() = defaultFlashlightStrength.toFloat() / maxFlashlightStrength
 
-            // When we have the camera characteristics loaded, store the max brightness level
-            maxFlashlightStrength = characteristics?.get(CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
+    private fun findBackCameraWithFlash(): String? {
+        for (id in cameraManager.cameraIdList) {
+            val characteristics = cameraManager.getCameraCharacteristics(id)
+            val flashAvailable = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+            val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
 
             if (flashAvailable && lensFacing == CameraCharacteristics.LENS_FACING_BACK) {
+                // Devices without brightness control report a single strength level
+                maxFlashlightStrength = characteristics.get(CameraCharacteristics.FLASH_INFO_STRENGTH_MAXIMUM_LEVEL) ?: 1
+                defaultFlashlightStrength = characteristics.get(CameraCharacteristics.FLASH_INFO_STRENGTH_DEFAULT_LEVEL) ?: 1
                 return id
             }
         }
         return null
     }
 
-    init {
-        // Check if the device has a camera flash feature
-        if (!application.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-            throw UnsupportedOperationException("This device does not have a camera flash.")
-        }
-
-        cameraId = getCameraId()
-    }
-
+    // Sets the flashlight brightness from 0 (off) to 1 (maximum strength)
     fun setFlashlightBrightness(brightness: Float) {
-        if (brightness < 0F || brightness > 1F) {
-            // TODO: See when this happens and prevent it
-            // throw IllegalArgumentException("Brightness must be between 0 and 1")
-        }
+        val id = cameraId ?: return
+        // Round up so that any brightness above 0 turns the flashlight on
+        val strength = ceil(brightness.coerceIn(0F, 1F) * maxFlashlightStrength).toInt()
 
-        if (cameraManager != null && cameraId != null) {
-            try {
-                val normalizedBrightness = (brightness * maxFlashlightStrength).toInt()
-                if (normalizedBrightness <= 0) {
-                    cameraManager!!.setTorchMode(cameraId!!, false)
-                    currentFlashlightState = FlashlightState.OFF
-                }
-                else {
-                    cameraManager!!.turnOnTorchWithStrengthLevel(cameraId!!, normalizedBrightness)
-                    currentFlashlightState = FlashlightState.ON
-                }
-            } catch (e: CameraAccessException) {
-                e.printStackTrace()
+        try {
+            if (strength == 0) {
+                cameraManager.setTorchMode(id, false)
+            } else {
+                cameraManager.turnOnTorchWithStrengthLevel(id, strength)
             }
+        } catch (e: CameraAccessException) {
+            Log.e(TAG, "Unable to set the flashlight brightness", e)
         }
     }
 }
